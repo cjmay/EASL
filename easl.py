@@ -1,9 +1,8 @@
-#!/bin/python
 # -*- coding: utf-8 -*-
 
-import os,sys
 import csv
 import random
+
 import numpy as np
 
 from scripts.encode_emoji import replace_emoji_characters
@@ -13,10 +12,18 @@ np.random.seed(12345)
 random.seed(12345)
 
 
-class EASL:
+class EASL(object):
     """
     Efficient Annotation for Scalar Labels
     """
+    
+    DEFAULT_PARAMS = dict(
+        param_items=5,
+        param_hits=20,
+        param_match=0.1,
+        param_mean_windows=False,
+        param_overlap=0,
+    )
 
     def __init__(self, params=None):
         if params is None:
@@ -28,6 +35,9 @@ class EASL:
         self.headerHits = []
         print("model parameters")
         print(self.params)
+        
+    def get_param(self, param_name):
+        return self.params.get(param_name, self.DEFAULT_PARAMS[param_name])
 
     def initItem(self, filePath):
         with open(filePath) as f:
@@ -55,7 +65,7 @@ class EASL:
         csvReader = csv.DictReader(open(filePath, 'r'))
         self.headerModel = csvReader.fieldnames
         for _h in self.headerModel:
-            for _i in range(1, self.params["param_items"]+1):
+            for _i in range(1, self.get_param("param_items")+1):
                 self.headerHits.append(_h + str(_i))
 
         for row in csvReader:
@@ -71,7 +81,7 @@ class EASL:
         csvWriter = csv.DictWriter(open(filePath, 'w', newline=''), fieldnames=self.headerHits)
         csvWriter.writeheader()
 
-        hit_item_pairs = list(hitItems.items())[:self.params['param_hits']]
+        hit_item_pairs = list(hitItems.items())[:self.get_param('param_hits')]
         random.shuffle(hit_item_pairs)
         for itemID, compareIDs in hit_item_pairs:
             ids = [itemID] + list(compareIDs)
@@ -84,67 +94,96 @@ class EASL:
             csvWriter.writerow(rowDict)
 
     def getNextK(self, k, iterNum):
-        kItems = {}
+        k_items = {}
 
         if iterNum == 0:
             # The first iteration will cover all items.
-            idList = []
-            for itemID, row in self.items.items():
-                idList.append(itemID)
-            random.shuffle(idList)
-            residual = self.params["param_items"] - (len(idList) % self.params["param_items"])
-            idList = idList + idList[:residual]
-            assert len(idList) % self.params["param_items"] == 0
+            id_list = []
+            for item_id, row in self.items.items():
+                id_list.append(item_id)
+            random.shuffle(id_list)
+            residual = self.get_param("param_items") - (len(id_list) % self.get_param("param_items"))
+            id_list = id_list + id_list[:residual]
+            assert len(id_list) % self.get_param("param_items") == 0
 
-            for sublist in zip(*[iter(idList)] * self.params["param_items"]):
-                kItems[sublist[0]] = np.array(sublist[1:])
+            for sublist in zip(*[iter(id_list)] * self.get_param("param_items")):
+                k_items[sublist[0]] = np.array(sublist[1:])
 
         else:
-            # 1. select k different items according to variance
-            varList = []    # [(itemID, var), (itemID, var), ...]
-            indexSet = set([])
+            if self.get_param('param_mean_windows'):
+                # sort items by mode
+                mode_list = sorted([
+                    (float(row['mode']), random.random(), row['id'])
+                    for row in self.items.values()])
 
-            for itemID, row in self.items.items():
-                varList.append((row["id"], float(row["var"]), random.random()))
-                indexSet.add(itemID)
+                # compute number of items needed to make `k` hits with
+                # `self.get_param('param_items']` items per hit, where each
+                # hit overlaps with its adjacent hits by `overlap` items
+                overlap = self.get_param('param_overlap')
+                num_items_per_hit = self.get_param('param_items')
+                total_num_items_needed = k * num_items_per_hit - (k - 1) * overlap
+                if total_num_items_needed > len(mode_list):
+                    raise Exception(
+                        'there are not enough items to generate {} hits with {} '
+                        'items each and overlap {}'.format(
+                            k, num_items_per_hit, overlap))
 
-            varList = sorted(varList, key=lambda x: (-x[1], x[2]))
-            kItemList = varList[:k]
+                # compute number of hits to skip at the beginning of
+                # `modeList`
+                start = int((len(mode_list) - total_num_items_needed) / 2)
 
-            # 2. for each k, choose m items according to matching quality
-            for _k in kItemList:
-                _j = _k[0]  # itemID
-                candidateID = []
-                candidateProb = []
-                sumProb = 0.
-                m_j = float(self.items[_j]["mode"])
-                var_j = float(self.items[_j]["var"])
-                param_gamma = float(self.params["param_match"])
+                # create hits (`k_items` is a dictionary from the first item
+                # the hit to a list of the other `k - 1` items)
+                for hit_num in range(k):
+                    hit_start = start + hit_num * (num_items_per_hit - overlap)
+                    k_items[mode_list[hit_start][2]] = [
+                        item_id
+                        for (item_mode, _, item_id)
+                        in mode_list[hit_start + 1:hit_start + num_items_per_hit]]
+            else:
+                # 1. select k different items according to variance
+                var_list = []    # [(itemID, var), (itemID, var), ...]
+                index_set = set([])
 
-                for _i in indexSet:
-                    if _i != _j:
-                        m_i = float(self.items[_i]["mode"])
-                        var_i = float(self.items[_i]["var"])
-                        csq = 2. * param_gamma**2 + var_j + var_i
-                        matchQuality = np.sqrt(2.0 * param_gamma**2 / csq) * np.exp( -((m_j - m_i)**2) / (2.0 * csq))
-                        sumProb += matchQuality
-                        candidateID.append(_i)
-                        candidateProb.append(matchQuality)
+                for item_id, row in self.items.items():
+                    var_list.append((row["id"], float(row["var"]), random.random()))
+                    index_set.add(item_id)
 
-                candidateProb = [p/sumProb for p in candidateProb]
-                selectedIDs = np.random.choice(candidateID, self.params["param_items"]-1, p=candidateProb, replace=False)
-                kItems[_j] = selectedIDs
+                var_list = sorted(var_list, key=lambda x: (-x[1], x[2]))
+                k_item_list = var_list[:k]
 
-                #print("##########################")
-                #candidateProb.sort(reverse=True)
-                #print(candidateProb)
-                #print("########## ITEM ##########")
-                #print(self.items[_j])
-                #print("####### COMPARISON #######")
-                #for _i in selectedIDs:
-                #    print(self.items[_i])
+                # 2. for each k, choose m items according to matching quality
+                for _k in k_item_list:
+                    _j = _k[0]  # itemID
+                    candidate_id = []
+                    candidate_prob = []
+                    sum_prob = 0.
+                    m_j = float(self.items[_j]["mode"])
+                    var_j = float(self.items[_j]["var"])
+                    param_gamma = float(self.get_param("param_match"))
 
-        return kItems
+                    for _i in index_set:
+                        if _i != _j:
+                            m_i = float(self.items[_i]["mode"])
+                            var_i = float(self.items[_i]["var"])
+                            csq = 2. * param_gamma**2 + var_j + var_i
+                            match_quality = np.sqrt(
+                                2.0 * param_gamma**2 / csq
+                            ) * np.exp(
+                                -((m_j - m_i)**2) / (2.0 * csq))
+                            sum_prob += match_quality
+                            candidate_id.append(_i)
+                            candidate_prob.append(match_quality)
+
+                    candidate_prob = [p/sum_prob for p in candidate_prob]
+                    selected_ids = np.random.choice(
+                        candidate_id,
+                        self.get_param("param_items") - 1,
+                        p=candidate_prob,
+                        replace=False)
+                    k_items[_j] = selected_ids
+
+        return k_items
 
     def alpha_from_beta(self, b, m):
         # compute alpha from beta (b) and mode (m)
@@ -199,7 +238,7 @@ class EASL:
     def observe(self, observe_path):
         csvReader = csv.DictReader(open(observe_path, 'r'))
         for row in csvReader:
-            for _i in range(1, self.params["param_items"]+1):
+            for _i in range(1, self.get_param("param_items") + 1):
                 id_i = row["Input.id{}".format(_i)]
                 if row.get("Answer.na{}".format(_i), "off").lower() == "on":
                     self.items[id_i]["na_count"] = int(self.items[id_i]["na_count"]) + 1

@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import os
-import easl
+
+from easl import EASL
 
 
 def run(operation, model_path, params):
     if operation not in ('update', 'update-generate', 'generate'):
         raise ValueError('unknown operation {}'.format(operation))
 
-    model = easl.EASL(params)
+    model = EASL(params)
 
     model_dir = os.path.dirname(model_path)
     model_name = "_".join(os.path.basename(model_path).split('_')[:-1])
@@ -42,15 +43,24 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--operation', dest="operation",
                             choices=["generate", "update", "update-generate"], required=True,
-                            default=None, help="operation to run")
+                            help="operation to run")
     arg_parser.add_argument('--model', dest="model_path", required=True,
-                            default=None, help="model file path")
-    arg_parser.add_argument('--item', dest="param_items", type=int, required=False,
-                            default=5, help="number of items per hit (default 5) ")
-    arg_parser.add_argument('--match', dest="param_match", type=float, required=False,
-                            default=0.1, help="parameter gamma for match quality (default 0.1) ")
-    arg_parser.add_argument('--hits', dest="param_hits", type=int, required=False,
-                            default=20, help="number of HITs to generate (recommend: hits = N/k, N=number of entire sample points, k=items per hit) ")
+                            help="model file path")
+    arg_parser.add_argument('--item', dest="param_items", type=int,
+                            default=EASL.DEFAULT_PARAMS['param_items'],
+                            help="number of items per hit (default 5) ")
+    arg_parser.add_argument('--match', dest="param_match", type=float,
+                            default=EASL.DEFAULT_PARAMS['param_match'],
+                            help="parameter gamma for match quality (default 0.1) ")
+    arg_parser.add_argument('--hits', dest="param_hits", type=int,
+                            default=EASL.DEFAULT_PARAMS['param_hits'],
+                            help="number of HITs to generate (recommend: hits = N/k, N=number of entire sample points, k=items per hit) ")
+    arg_parser.add_argument('--mean-windows', dest="param_mean_windows", action='store_true',
+                            help="use mean windows to compute HITs "
+                                 "(default: original EASL method)")
+    arg_parser.add_argument('--overlap', dest="param_overlap", type=int,
+                            default=EASL.DEFAULT_PARAMS['param_overlap'],
+                            help="number of items by which to overlap HITs")
 
     args = arg_parser.parse_args()
 
