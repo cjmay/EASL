@@ -35,26 +35,26 @@ if __name__ == "__main__":
         exit(1)
 
     model_path = args.model_path
-    model_dir = '/'.join(model_path.split('/')[:-1])
+    model_dir = os.path.dirname(model_path)
     #model_name = model_path.split('/')[-1].split('_')[0]
-    model_name = "_".join(model_path.split('/')[-1].split('_')[:-1])
-    iterNum = int(model_path.split('/')[-1].split('.')[0].split('_')[-1])
+    model_name = "_".join(os.path.basename(model_path).split('_')[:-1])
+    iterNum = int(os.path.splitext(os.path.basename(model_path))[0].split('_')[-1])
 
     # 1. generate next hits
     if args.operation == "generate":
         model.loadItem(model_path)
-        hit_path = model_dir + '/' + model_name + '_hit_' + str(iterNum+1) + ".csv"
+        hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iterNum+1) + os.extsep + "csv")
         nextItems = model.getNextK(args.param_hits, iterNum)
         model.generateHits(hit_path, nextItems)
 
     # 2. update the model
     if args.operation == "update":
-        observe_path = model_dir + '/' + model_name + '_result_' + str(iterNum+1) + ".csv"
+        observe_path = os.path.join(model_dir, model_name + '_result_' + str(iterNum+1) + os.extsep + "csv")
         if not os.path.exists(observe_path):
             print("Mturk result file is not found. {} is expected.".format(observe_path))
             exit(1)
 
-        new_model_path = model_dir + '/' + model_name + '_' + str(iterNum+1) + ".csv"
+        new_model_path = os.path.join(model_dir, model_name + '_' + str(iterNum+1) + os.extsep + "csv")
         model.loadItem(model_path)
         model.observe(observe_path)
         model.saveItem(new_model_path)

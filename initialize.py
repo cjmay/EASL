@@ -6,9 +6,9 @@ import csv
 from scripts.encode_emoji import replace_emoji_characters
 
 in_file_path = sys.argv[1]
-dir_path = '/'.join(in_file_path.split('/')[:-1])
-file_name = in_file_path.split('/')[-1].split('.csv')[0]
-out_file_name = file_name + "_0.csv"
+dir_path = os.path.dirname(in_file_path)
+file_name = os.path.splitext(os.path.basename(in_file_path))[0]
+out_file_name = file_name + "_0" + os.extsep + "csv"
 out_file_path = os.path.join(dir_path, out_file_name)
 
 f_in = open(in_file_path, 'r')
