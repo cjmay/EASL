@@ -35,12 +35,12 @@ Last update: June 5, 2018
     
     Note: You can add additional columns. For example, if you want to annotate on a pair of sentences such as premise and hypothesis, the columns will look like `id, premise, hypothesis`)
     
-    Run `python initialize.py ./experiments/political/political.csv` to set initial parameters (`alpha, beta, mu, sigma`)
+    Run `python initialize.py ./experiments/political/political.csv` to set initial parameters (`alpha, beta, mode, var`)
 
     The result csv file (`political_0.csv`) should be as follows. 
     
          e.g., 
-         id,sent,alpha,beta,mu,sigma
+         id,sent,alpha,beta,mode,var
          1,obama is a legend in his own mind,1,1,0.5,0.0833
          2,conservatives are racists,1,1,0.5,0.0833
          3,cruz is correct,1,1,0.5,0.0833
@@ -48,7 +48,7 @@ Last update: June 5, 2018
          5,obama thinks there are 57 states,1,1,0.5,0.0833
          ...
        
-    It has additional columns: `alpha, beta, mu, sigma`.
+    It has additional columns: `alpha, beta, mode, var`.
     
     In this example, we place the file at `./experiments/political/political_0.csv`.
     
