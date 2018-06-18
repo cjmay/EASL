@@ -6,21 +6,49 @@ import csv
 import random
 import numpy as np
 
+from scripts.encode_emoji import replace_emoji_characters
+
+
 np.random.seed(12345) 
 random.seed(12345)
+
 
 class EASL:
     """
     Efficient Annotation for Scalar Labels
     """
 
-    def __init__(self, params):
+    def __init__(self, params=None):
+        if params is None:
+            params = {}
+
         self.params = params
         self.items = {}
         self.headerModel = []
         self.headerHits = []
         print("model parameters")
         print(self.params)
+
+    def initItem(self, filePath):
+        with open(filePath) as f:
+            csvReader = csv.DictReader(f)
+            self.headerModel = csvReader.fieldnames + ['alpha', 'beta', 'mode', 'var']
+            for row in csvReader:
+                if not ('id' in row and 'sent' in row):
+                    print("Columns must have at least length of two (e.g., id, sent)")
+                    exit(1)
+
+                out_row = dict(
+                    alpha=1,
+                    beta=1,
+                    mode=0.5,
+                    var=0.0833,
+                )
+                out_row.update(dict(
+                    (k, replace_emoji_characters(v))
+                    for (k, v) in row.items()
+                ))
+                self.items[out_row["id"]] = out_row
 
     def loadItem(self, filePath):
         csvReader = csv.DictReader(open(filePath, 'r'))
