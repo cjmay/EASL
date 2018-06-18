@@ -1,9 +1,10 @@
 
 # Efficient Annotation of Scalar Labels (EASL)
 
-Last update: June 5, 2018
+[![Travis build status](https://travis-ci.org/cjmay/EASL.svg?branch=master)](https://travis-ci.org/cjmay/EASL)
+[![Appveyor build status](https://ci.appveyor.com/api/projects/status/7fy00a0hr7hklxc3/branch/master?svg=true)](https://ci.appveyor.com/project/cjmay/easl/branch/master)
 
-[preprint](https://arxiv.org/abs/1806.01170)
+See the [preprint](https://arxiv.org/abs/1806.01170) ([to appear in ACL 2018](https://acl2018.org/programme/papers/)).
 
 - - - 
 ## Pre-requisites
