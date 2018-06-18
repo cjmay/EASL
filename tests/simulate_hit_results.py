@@ -5,15 +5,20 @@ from random import randint
 
 
 def simulate_hit_results(hit_path, results_path):
-    with open(hit_path) as in_f, open(results_path, 'w') as out_f:
-        writer = DictWriter(out_f, fieldnames=[
-            '{}{}'.format(prefix, i + 1)
-            for prefix in ('Input.id', 'Answer.range')
-            for i in range(5)])
-        writer.writeheader()
+    with open(hit_path) as in_f, open(results_path, 'w', newline='') as out_f:
+        num_items_per_hit = 0
+        writer = None
         for in_row in DictReader(in_f):
+            if writer is None:
+                while 'id{}'.format(num_items_per_hit + 1) in in_row:
+                    num_items_per_hit += 1
+                writer = DictWriter(out_f, fieldnames=[
+                    '{}{}'.format(prefix, i + 1)
+                    for prefix in ('Input.id', 'Answer.range')
+                    for i in range(num_items_per_hit)])
+                writer.writeheader()
             out_row = dict()
-            for i in range(5):
+            for i in range(num_items_per_hit):
                 out_row['Input.id{}'.format(i + 1)] = in_row['id{}'.format(i + 1)]
                 out_row['Answer.range{}'.format(i + 1)] = randint(0, 100)
             writer.writerow(out_row)
