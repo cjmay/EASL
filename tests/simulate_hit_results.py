@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from csv import DictReader, DictWriter
-from random import randint
+from random import randint, choice
 
 
 def simulate_hit_results(hit_path, results_path):
@@ -14,13 +14,15 @@ def simulate_hit_results(hit_path, results_path):
                     num_items_per_hit += 1
                 writer = DictWriter(out_f, fieldnames=[
                     '{}{}'.format(prefix, i + 1)
-                    for prefix in ('Input.id', 'Answer.range')
+                    for prefix in ('Input.id', 'Answer.range', 'Answer.na')
                     for i in range(num_items_per_hit)])
                 writer.writeheader()
             out_row = dict()
             for i in range(num_items_per_hit):
                 out_row['Input.id{}'.format(i + 1)] = in_row['id{}'.format(i + 1)]
                 out_row['Answer.range{}'.format(i + 1)] = randint(0, 100)
+                if choice((True, False)):
+                    out_row['Answer.na{}'.format(i + 1)] = 'on'
             writer.writerow(out_row)
 
 

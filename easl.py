@@ -32,7 +32,7 @@ class EASL:
     def initItem(self, filePath):
         with open(filePath) as f:
             csvReader = csv.DictReader(f)
-            self.headerModel = csvReader.fieldnames + ['alpha', 'beta', 'mode', 'var']
+            self.headerModel = csvReader.fieldnames + ['alpha', 'beta', 'mode', 'var', 'na_count']
             for row in csvReader:
                 if not ('id' in row and 'sent' in row):
                     print("Columns must have at least length of two (e.g., id, sent)")
@@ -43,6 +43,7 @@ class EASL:
                     beta=1,
                     mode=0.5,
                     var=0.0833,
+                    na_count=0,
                 )
                 out_row.update(dict(
                     (k, replace_emoji_characters(v))
@@ -190,9 +191,12 @@ class EASL:
         for row in csvReader:
             for _i in range(1, self.params["param_items"]+1):
                 id_i = row["Input.id{}".format(_i)]
-                s_i = float(row["Answer.range{}".format(_i)])/100.
-                self.items[id_i]["alpha"] = float(self.items[id_i]["alpha"]) + s_i
-                self.items[id_i]["beta"] = float(self.items[id_i]["beta"]) + (1. - s_i)
+                if row.get("Answer.na{}".format(_i), "off").lower() == "on":
+                    self.items[id_i]["na_count"] = int(self.items[id_i]["na_count"]) + 1
+                else:
+                    s_i = float(row["Answer.range{}".format(_i)])/100.
+                    self.items[id_i]["alpha"] = float(self.items[id_i]["alpha"]) + s_i
+                    self.items[id_i]["beta"] = float(self.items[id_i]["beta"]) + (1. - s_i)
                 self.items[id_i]["mode"] = self.mode(self.items[id_i]["alpha"], self.items[id_i]["beta"])
                 self.items[id_i]["var"] = self.variance(self.items[id_i]["alpha"], self.items[id_i]["beta"])
 
