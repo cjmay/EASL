@@ -42,7 +42,7 @@
     }
     .blue{color: #0000FF;}
     .red{color: #FF0000;}
-    .grey{color: #777777;}
+    .grey{color: #444444;}
     .instr * {}
 
     .emph {
@@ -63,6 +63,11 @@
         border: 2px solid #444444;
         border-radius: 3px;
         margin-right: 25px;
+        opacity: 0.7;
+    }
+
+    input[type="checkbox"]:hover + label {
+        opacity: 1; /* Fully shown on mouse-over */
     }
 
     input[type="checkbox"]:checked + label {
@@ -225,6 +230,7 @@
                     You will be presented five sentences collected in the United States in 2015.
                     <span class="emph">Please score each sentence with its position on the political spectrum.</span>
                     The score is between 0 (conservative / Republican stance) and 100 (liberal / Democrat stance), with 50 representing a neutral stance.
+                    <span class="emph">If a sentence does not express a political stance, check "N/A".</span>
                     If you have any questions, please send an e-mail to: <a href="mailto:sample@sample.com">sample@sample.com</a> </p>
             </div>
         </div>
@@ -237,6 +243,9 @@
                 <p class="sentence">Sentence #1: ${sent1}</p>
                 <div class="slidecontainer">
                     <p class="emph">Score: <span id="myRange1">50</span></p>
+                    <span class="label grey">N/A</span>
+                    <input type="checkbox" id="box1" name="na1" oninput="toggleSlider(1);" />
+                    <label for="box1">&nbsp;</label>
                     <span class="label red">Conservative / Republican</span>
                     <input type="range" min="0" max="100" value="50" class="slider" id="slide1" name="range1" oninput="updateSlider(this.value, 1);">
                     <span class="label blue">Liberal / Democrat</span>
@@ -245,6 +254,9 @@
                 <p class="sentence">Sentence #2: ${sent2}</p>
                 <div class="slidecontainer">
                     <p class="emph">Score: <span id="myRange2">50</span></p>
+                    <span class="label grey">N/A</span>
+                    <input type="checkbox" id="box2" name="na2" oninput="toggleSlider(2);" />
+                    <label for="box2">&nbsp;</label>
                     <span class="label red">Conservative / Republican</span>
                     <input type="range" min="0" max="100" value="50" class="slider" id="slide2" name="range2" oninput="updateSlider(this.value, 2);">
                     <span class="label blue">Liberal / Democrat</span>
@@ -253,6 +265,9 @@
                 <p class="sentence">Sentence #3: ${sent3}</p>
                 <div class="slidecontainer">
                     <p class="emph">Score: <span id="myRange3">50</span></p>
+                    <span class="label grey">N/A</span>
+                    <input type="checkbox" id="box3" name="na3" oninput="toggleSlider(3);" />
+                    <label for="box3">&nbsp;</label>
                     <span class="label red">Conservative / Republican</span>
                     <input type="range" min="0" max="100" value="50" class="slider" id="slide3" name="range3" oninput="updateSlider(this.value, 3);">
                     <span class="label blue">Liberal / Democrat</span>
@@ -261,6 +276,9 @@
                 <p class="sentence">Sentence #4: ${sent4}</p>
                 <div class="slidecontainer">
                     <p class="emph">Score: <span id="myRange4">50</span></p>
+                    <span class="label grey">N/A</span>
+                    <input type="checkbox" id="box4" name="na4" oninput="toggleSlider(4);" />
+                    <label for="box4">&nbsp;</label>
                     <span class="label red">Conservative / Republican</span>
                     <input type="range" min="0" max="100" value="50" class="slider" id="slide4" name="range4" oninput="updateSlider(this.value, 4);">
                     <span class="label blue">Liberal / Democrat</span>
@@ -269,6 +287,9 @@
                 <p class="sentence">Sentence #5: ${sent5}</p>
                 <div class="slidecontainer">
                     <p class="emph">Score: <span id="myRange5">50</span></p>
+                    <span class="label grey">N/A</span>
+                    <input type="checkbox" id="box5" name="na5" oninput="toggleSlider(5);" />
+                    <label for="box5">&nbsp;</label>
                     <span class="label red">Conservative / Republican</span>
                     <input type="range" min="0" max="100" value="50" class="slider" id="slide5" name="range5" oninput="updateSlider(this.value, 5);">
                     <span class="label blue">Liberal / Democrat</span>
