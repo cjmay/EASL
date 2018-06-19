@@ -167,8 +167,18 @@ class EASL:
         assert alpha + beta == S
         return alpha, beta
 
-    def mode(self, alpha, beta):
-        alpha, beta = float(alpha), float(beta)
+    def mode(self, alpha, beta, na_count):
+        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
+        diff = alpha - beta
+        if diff < 0:
+            alpha += min(na_count, -diff)
+        else:
+            beta += min(na_count, diff)
+        na_count -= min(na_count, abs(diff))
+        alpha += na_count / 2.
+        beta += na_count / 2.
+        na_count = 0
+
         if alpha == 1. and beta == 1.:
             return 0.5
         else:
@@ -178,13 +188,13 @@ class EASL:
                 exit(1)
             return (alpha - 1.0) / (alpha + beta - 2.0)
 
-    def mean(self, alpha, beta):
-        alpha, beta = float(alpha), float(beta)
+    def mean(self, alpha, beta, na_count):
+        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
         return alpha / (alpha + beta)
 
-    def variance(self, alpha, beta):
-        alpha, beta = float(alpha), float(beta)
-        return (alpha * beta) / ((np.power(alpha + beta, 2.0)) * (alpha + beta + 1))
+    def variance(self, alpha, beta, na_count):
+        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
+        return (alpha * beta) / ((np.power(alpha + beta + na_count, 2.0)) * (alpha + beta + na_count + 1))
 
     def observe(self, observe_path):
         csvReader = csv.DictReader(open(observe_path, 'r'))
@@ -197,8 +207,14 @@ class EASL:
                     s_i = float(row["Answer.range{}".format(_i)])/100.
                     self.items[id_i]["alpha"] = float(self.items[id_i]["alpha"]) + s_i
                     self.items[id_i]["beta"] = float(self.items[id_i]["beta"]) + (1. - s_i)
-                self.items[id_i]["mode"] = self.mode(self.items[id_i]["alpha"], self.items[id_i]["beta"])
-                self.items[id_i]["var"] = self.variance(self.items[id_i]["alpha"], self.items[id_i]["beta"])
+                self.items[id_i]["mode"] = self.mode(
+                    self.items[id_i]["alpha"],
+                    self.items[id_i]["beta"],
+                    self.items[id_i]["na_count"])
+                self.items[id_i]["var"] = self.variance(
+                    self.items[id_i]["alpha"],
+                    self.items[id_i]["beta"],
+                    self.items[id_i]["na_count"])
 
     def get_scores(self):
         return dict((item['id'], item['mode']) for item in self.items.values())
