@@ -65,3 +65,38 @@ def test_scripts(script_data, num_hits, num_items):
                 num_items=num_items,
                 round=round_num,
             ).split())
+
+
+# Note political.csv contains 150 items so we require the parameters to satisfy
+#   num_hits + num_items - 1 <= 150
+# because the anchors for all num_hits HITs are removed from the candidates for
+# the other (num_items - 1) items in each HIT
+@mark.parametrize('num_hits,num_items', it.product((1, 30, 100), (1, 5, 25)))
+def test_update_generate(script_data, num_hits, num_items):
+    prefix = script_data['prefix']
+    check_call(
+        'python initialize.py {prefix}political.csv'.format(prefix=prefix).split())
+    check_call(
+        'python main.py --operation generate '
+        '--model {prefix}political_0.csv --hits {num_hits} --item {num_items}'.format(
+            prefix=prefix,
+            num_hits=num_hits,
+            num_items=num_items,
+        ).split())
+    for round_num in range(NUM_ROUNDS):
+        simulate_hit_results(
+            '{prefix}political_hit_{next_round}.csv'.format(
+                prefix=prefix,
+                next_round=round_num + 1),
+            '{prefix}political_result_{next_round}.csv'.format(
+                prefix=prefix,
+                next_round=round_num + 1))
+        check_call(
+            'python main.py --operation {operation} '
+            '--model {prefix}political_{round}.csv --item {num_items} --hits {num_hits}'.format(
+                operation='update-generate' if round_num + 1 < NUM_ROUNDS else 'update',
+                prefix=prefix,
+                num_items=num_items,
+                num_hits=num_hits,
+                round=round_num,
+            ).split())

@@ -8,7 +8,8 @@ import easl as easl
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--operation', dest="operation", choices=["generate", "update"], required=True,
+    arg_parser.add_argument('--operation', dest="operation",
+                            choices=["generate", "update", "update-generate"], required=True,
                             default=None, help="operation to run")
     arg_parser.add_argument('--model', dest="model_path", required=False,
                             default=None, help="model file path")
@@ -40,15 +41,8 @@ if __name__ == "__main__":
     model_name = "_".join(os.path.basename(model_path).split('_')[:-1])
     iterNum = int(os.path.splitext(os.path.basename(model_path))[0].split('_')[-1])
 
-    # 1. generate next hits
-    if args.operation == "generate":
-        model.loadItem(model_path)
-        hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iterNum+1) + os.extsep + "csv")
-        nextItems = model.getNextK(args.param_hits, iterNum)
-        model.generateHits(hit_path, nextItems)
-
-    # 2. update the model
-    if args.operation == "update":
+    if args.operation in ("update", "update-generate"):
+        # update the model
         observe_path = os.path.join(model_dir, model_name + '_result_' + str(iterNum+1) + os.extsep + "csv")
         if not os.path.exists(observe_path):
             print("Mturk result file is not found. {} is expected.".format(observe_path))
@@ -59,3 +53,12 @@ if __name__ == "__main__":
         model.observe(observe_path)
         model.saveItem(new_model_path)
 
+        model_path = new_model_path
+        iterNum += 1
+
+    if args.operation in ("generate", "update-generate"):
+        # generate next hits
+        model.loadItem(model_path)
+        hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iterNum+1) + os.extsep + "csv")
+        nextItems = model.getNextK(args.param_hits, iterNum)
+        model.generateHits(hit_path, nextItems)
