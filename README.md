@@ -10,7 +10,7 @@ See the [preprint](https://arxiv.org/abs/1806.01170) ([to appear in ACL 2018](ht
 ## Requirements
 
 - Python 3.x
-- numpy (`pip install -r requirements.txt`)
+- numpy, scipy (`pip install -r requirements.txt`)
 
 ## Usage
 

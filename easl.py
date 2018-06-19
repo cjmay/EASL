@@ -200,3 +200,5 @@ class EASL:
                 self.items[id_i]["mode"] = self.mode(self.items[id_i]["alpha"], self.items[id_i]["beta"])
                 self.items[id_i]["var"] = self.variance(self.items[id_i]["alpha"], self.items[id_i]["beta"])
 
+    def get_scores(self):
+        return dict((item['id'], item['mode']) for item in self.items.values())
