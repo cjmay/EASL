@@ -105,10 +105,10 @@ class EASL:
             indexSet = set([])
 
             for itemID, row in self.items.items():
-                varList.append((row["id"], float(row["var"])))
+                varList.append((row["id"], float(row["var"]), random.random()))
                 indexSet.add(itemID)
 
-            varList = sorted(varList, key=lambda x:(-x[1], x[0]))
+            varList = sorted(varList, key=lambda x: (-x[1], x[2]))
             kItemList = varList[:k]
 
             for _k in kItemList:
