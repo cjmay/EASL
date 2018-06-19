@@ -71,7 +71,9 @@ class EASL:
         csvWriter = csv.DictWriter(open(filePath, 'w', newline=''), fieldnames=self.headerHits)
         csvWriter.writeheader()
 
-        for itemID, compareIDs in hitItems.items():
+        hit_item_pairs = list(hitItems.items())[:self.params['param_hits']]
+        random.shuffle(hit_item_pairs)
+        for itemID, compareIDs in hit_item_pairs:
             ids = [itemID] + list(compareIDs)
             random.shuffle(ids)
             rowDict = {}
