@@ -7,55 +7,52 @@
 See the [preprint](https://arxiv.org/abs/1806.01170) ([to appear in ACL 2018](https://acl2018.org/programme/papers/)).
 
 - - - 
-## Pre-requisites
+## Requirements
 
 - Python 3.x
-- numpy (`pip install numpy`)
+- numpy (`pip install -r requirements.txt`)
 
-## Procedure
-1. Create your project by `sh create_project.sh YOUR_PROJECT_NAME` 
+## Usage
 
-    Let's assume our project name is `political`.
+We show how to use EASL for one round of annotation on a prepared data set, a collection of sentences we wish to annotate with their political stances (between liberal and conservative).  We have already created a Mechanical Turk HIT layout template (`templates/political/template_political.html`) and a file containing the data set in the format EASL expects (`experiments/political/political.csv`). 
     
-    (e.g., `sh create_project.sh political`)
+1. Prepare the data
     
-1. Prepare data (csv file) in `./experiments/political/XYZ.csv`
+    Your data should be formatted in a csv file, consisting of (at least) the columns `id, sent`.  For example:
+
+    ```
+    id,sent
+    1,obama is a legend in his own mind
+    2,conservatives are racists
+    3,cruz is correct
+    4,romney is president
+    5,obama thinks there are 57 states
+    ```
     
-    Your data should be formatted in a csv file, consisting of (at least) the columns of `id, sent`.
+    Note: You can add additional columns. For example, if you want to annotate on a pair of sentences such as premise and hypothesis, the columns will look like `id, premise, hypothesis`.
     
-             e.g., 
-             id,sent
-             1,obama is a legend in his own mind
-             2,conservatives are racists
-             3,cruz is correct
-             4,romney is president
-             5,obama thinks there are 57 states
-             ...
+    Let's assume our file name is `experiments/political/political.csv`.
+    
+    We will run the following to set initial parameters (`alpha, beta, mode, var`).
+    
+    ```bash
+    python initialize.py experiments/political/political.csv
+    ```
+
+    The result csv file (`experiments/political/political_0.csv`) should look similar to the following. 
+    
+    ```
+    id,sent,alpha,beta,mode,var
+    1,obama is a legend in his own mind,1,1,0.5,0.0833
+    2,conservatives are racists,1,1,0.5,0.0833
+    3,cruz is correct,1,1,0.5,0.0833
+    4,romney is president,1,1,0.5,0.0833
+    5,obama thinks there are 57 states,1,1,0.5,0.0833
+    ```
        
-    Let's assume the file name is `political.csv`
+    Note that it has additional columns: `alpha, beta, mode, var`.
     
-    Note: You can add additional columns. For example, if you want to annotate on a pair of sentences such as premise and hypothesis, the columns will look like `id, premise, hypothesis`)
-    
-    Run `python initialize.py ./experiments/political/political.csv` to set initial parameters (`alpha, beta, mode, var`)
-
-    The result csv file (`political_0.csv`) should be as follows. 
-    
-         e.g., 
-         id,sent,alpha,beta,mode,var
-         1,obama is a legend in his own mind,1,1,0.5,0.0833
-         2,conservatives are racists,1,1,0.5,0.0833
-         3,cruz is correct,1,1,0.5,0.0833
-         4,romney is president,1,1,0.5,0.0833
-         5,obama thinks there are 57 states,1,1,0.5,0.0833
-         ...
-       
-    It has additional columns: `alpha, beta, mode, var`.
-    
-    In this example, we place the file at `./experiments/political/political_0.csv`.
-    
-    Prepare your HIT template in `./templates/political/`
-    
-    See an example at `./templates/political/template_political.html`.
+    The HIT layout template is an HTML file that will be interpolated with the values of variables in the HIT batch CSV file (generated in the next step).  To illustrate, Mechanical Turk replaces all instances of the string `${x}` in the template with the entry in column `x` in a given row in the CSV file.  Our layout is located at `templates/political/template_political.html`.
     
     Now, we are ready to start annotation with EASL!
 
@@ -63,23 +60,32 @@ See the [preprint](https://arxiv.org/abs/1806.01170) ([to appear in ACL 2018](ht
 
     We generate our HITs by running the following command. 
     
-        python main.py --operation generate --model ./experiments/political/political_0.csv --hits 25
+    ```bash
+    python main.py --operation generate --model experiments/political/political_0.csv --hits 25
+    ```
 
-    This generates `political_hit_1.csv` that has 25 HITs. 
+    This generates `experiments/political/political_hit_1.csv` that has 25 HITs (and five items per HIT, the default).
     
     The number of HITs (per iteration) should depend on your data size. (See `python main.py --help` for more details.)
     
-1. Publish the HITs (with the template file.)
+1. Publish the HITs (with the template file created earlier).
 
-1. Collect the result and name it `./experiments/political/political_result_1.csv`.
+1. Collect the result and name it `experiments/political/political_result_1.csv`.
 
 1. Update the model
 
-        python main.py --operation update --model ./experiments/political/political_0.csv
+    ```bash
+    python main.py --operation update --model experiments/political/political_0.csv
+    ```
 
-    This takes `political_0.csv`, `political_result_1.csv`, and then generate `political_1.csv`.
+    This takes `political_0.csv`, `political_result_1.csv`, and then generates `political_1.csv` (all in the directory `experiments/political/`).
     
-1. Go back to the step 3 (Generate HITs) and iterate the procedure. 
+1. Go back to the step 2 (Generate HITs). 
 
-    (e.g., If this is the first iteration with `political_0.csv`, use `political_1.csv` to generate HITs in the next iteration.)
+    For example, in the next iteration, pass `political_1.csv` to `generate` and `update`; in the subsequent iteration, pass `political_2.csv` to `generate` and `update`.
+    
+    For convenience, you may use the combined operation `update-generate` to update the model based on HIT results and generate a new batch of HIT data all at once.  For example, the following command updates the model given by `political_0.csv` with the results from `political_result_1.csv` (producing `political_1.csv`) and then generates new batch data `political_hit_2.csv`:
 
+    ```bash
+    python main.py --operation update-generate --model experiments/political/political_0.csv --hits 25
+    ```
