@@ -111,9 +111,6 @@ class EASL:
             varList = sorted(varList, key=lambda x: (-x[1], x[2]))
             kItemList = varList[:k]
 
-            for _k in kItemList:
-                indexSet.remove(_k[0]) # remove the item itself
-
             # 2. for each k, choose m items according to matching quality
             for _k in kItemList:
                 _j = _k[0]  # itemID
@@ -125,13 +122,14 @@ class EASL:
                 param_gamma = float(self.params["param_match"])
 
                 for _i in indexSet:
-                    m_i = float(self.items[_i]["mode"])
-                    var_i = float(self.items[_i]["var"])
-                    csq = 2. * param_gamma**2 + var_j + var_i
-                    matchQuality = np.sqrt(2.0 * param_gamma**2 / csq) * np.exp( -((m_j - m_i)**2) / (2.0 * csq))
-                    sumProb += matchQuality
-                    candidateID.append(_i)
-                    candidateProb.append(matchQuality)
+                    if _i != _j:
+                        m_i = float(self.items[_i]["mode"])
+                        var_i = float(self.items[_i]["var"])
+                        csq = 2. * param_gamma**2 + var_j + var_i
+                        matchQuality = np.sqrt(2.0 * param_gamma**2 / csq) * np.exp( -((m_j - m_i)**2) / (2.0 * csq))
+                        sumProb += matchQuality
+                        candidateID.append(_i)
+                        candidateProb.append(matchQuality)
 
                 candidateProb = [p/sumProb for p in candidateProb]
                 selectedIDs = np.random.choice(candidateID, self.params["param_items"]-1, p=candidateProb, replace=False)
