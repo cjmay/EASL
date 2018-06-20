@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
 
-from mturk import publish_batch, DEFAULT_LIFETIME, DEFAULT_MAX_ASSIGNMENTS
+import boto3
+
+from mturk import (
+    publish_batch, DEFAULT_LIFETIME, DEFAULT_MAX_ASSIGNMENTS,
+    PRODUCTION_ENDPOINT_URL, SANDBOX_ENDPOINT_URL,
+)
 
 
 if __name__ == '__main__':
@@ -24,7 +29,14 @@ if __name__ == '__main__':
                         help='Lifetype of HIT (in seconds)')
     parser.add_argument('--max-assignments', type=int, default=DEFAULT_MAX_ASSIGNMENTS,
                         help='Max number of assignments per HIT')
+    parser.add_argument('--sandbox', action='store_true',
+                        help='Connect to Mechanical Turk sandbox '
+                             '(default: production)')
     args = parser.parse_args()
+    client = boto3.client(
+        'mturk',
+        endpoint_url=SANDBOX_ENDPOINT_URL if args.sandbox else PRODUCTION_ENDPOINT_URL)
     publish_batch(args.hit_type_id, args.hit_layout_id, args.batch_csv_path,
                   batch_id=args.batch_id,
-                  lifetime=args.lifetime, max_assignments=args.max_assignments)
+                  lifetime=args.lifetime, max_assignments=args.max_assignments,
+                  client=client)

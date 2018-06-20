@@ -3,7 +3,7 @@
 
 import boto3
 
-from mturk import print_assignments, PRODUCTION_ENDPOINT_URL, SANDBOX_ENDPOINT_URL
+from mturk import list_assignments, PRODUCTION_ENDPOINT_URL, SANDBOX_ENDPOINT_URL
 
 
 if __name__ == '__main__':
@@ -30,6 +30,6 @@ if __name__ == '__main__':
     client = boto3.client(
         'mturk',
         endpoint_url=SANDBOX_ENDPOINT_URL if args.sandbox else PRODUCTION_ENDPOINT_URL)
-    print_assignments(hit_type_id=args.hit_type_id, batch_id=args.batch_id,
-                      requester_annotation=args.requester_annotation,
-                      approve=args.approve, client=client)
+    list_assignments(hit_type_id=args.hit_type_id, batch_id=args.batch_id,
+                     requester_annotation=args.requester_annotation,
+                     approve=args.approve, client=client)
