@@ -96,8 +96,16 @@ def write_results(results_path, hit_assignment_params_triples):
         writer = None
         for (hit, assignment, params) in hit_assignment_params_triples:
             row = dict(
+                HITId=hit['HITId'],
+                HITTypeId=hit['HITTypeId'],
+                HITLayoutId=hit['HITLayoutId'],
+                AssignmentId=assignment['AssignmentId'],
+                WorkerId=assignment['WorkerId'],
+            )
+            row.update(dict(
                 ('Input.{}'.format(k), v)
-                for (k, v) in params.items())
+                for (k, v) in params.items()
+            ))
             row.update(dict(
                 ('Answer.{}'.format(k), v)
                 for (k, v) in parse_answer(assignment['Answer']).items()
