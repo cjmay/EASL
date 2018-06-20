@@ -236,6 +236,7 @@ class EASL(object):
     def mode(cls, alpha, beta, na_count):
         alpha, beta, na_count = float(alpha), float(beta), int(na_count)
         diff = alpha - beta
+        na_count = float(na_count)
         if diff < 0:
             alpha += min(na_count, -diff)
         else:
@@ -243,7 +244,6 @@ class EASL(object):
         na_count -= min(na_count, abs(diff))
         alpha += na_count / 2.
         beta += na_count / 2.
-        na_count = 0
 
         if alpha == 1. and beta == 1.:
             return 0.5
