@@ -44,6 +44,7 @@ def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None
                 '{}_hit_{}{}csv'.format(model_name, model_start_index + round_num + 1, os.extsep)),
             client=client)
         hits = batch_data['hits']
+        hit_params = batch_data['hit_params']
         hit_ids = [hit['HITId'] for hit in hits]
 
         LOGGER.info('waiting on results')
@@ -60,7 +61,7 @@ def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None
                 model_dirname,
                 '{}_result_{}{}csv'.format(model_name, model_start_index + round_num + 1, os.extsep)),
             [
-                (hit, assignment)
+                (hit, assignment, hit_params[hit['HITId']])
                 for hit in hits
                 for assignment in hit_assignments[hit['HITId']]
             ])
@@ -90,13 +91,13 @@ def parse_answer(answer):
         for answer_field in xml_doc['QuestionFormAnswers']['Answer'])
 
 
-def write_results(results_path, hit_assignment_pairs):
+def write_results(results_path, hit_assignment_params_triples):
     with open(results_path, 'w', newline='') as f:
         writer = None
-        for (hit, assignment) in hit_assignment_pairs:
+        for (hit, assignment, params) in hit_assignment_params_triples:
             row = dict(
-                ('Input.id{}'.format(i + 1), id_)
-                for (i, id_) in enumerate(json.loads(hit['RequesterAnnotation'])['ids']))
+                ('Input.{}'.format(k), v)
+                for (k, v) in params.items())
             row.update(dict(
                 ('Answer.{}'.format(k), v)
                 for (k, v) in parse_answer(assignment['Answer']).items()
@@ -122,20 +123,18 @@ def publish_batch(hit_type_id, hit_layout_id, batch_csv_path, batch_id=None,
         batch_id = str(uuid4())
     LOGGER.info('batch id: {}'.format(batch_id))
 
-    hits = []
     if client is None:
         client = boto3.client('mturk')
+
+    hits = []
+    hit_params = dict()
+
     with open(batch_csv_path) as f:
         reader = DictReader(f)
         for (i, row) in enumerate(reader):
             request_token = str(uuid4())
             LOGGER.info('submitting HIT {} (request token {})'.format(i + 1, request_token))
             params = dict((k, v) for (k, v) in row.items() if PARAM_RE.match(k))
-            id_map = dict(
-                (int(m.group(1)), v)
-                for (m, v)
-                in ((ID_RE.match(k), v) for (k, v) in params.items())
-                if m is not None)
             response = client.create_hit_with_hit_type(
                 HITTypeId=hit_type_id,
                 MaxAssignments=max_assignments,
@@ -147,14 +146,15 @@ def publish_batch(hit_type_id, hit_layout_id, batch_csv_path, batch_id=None,
                 ],
                 RequesterAnnotation=json.dumps(dict(
                     batch_id=batch_id,
-                    ids=[id_map[i + 1] for i in range(len(id_map))],
                 )),
             )
             hit = response['HIT']
             hits.append(hit)
-            LOGGER.info('submitted HIT (id {})'.format(hit['HITId']))
+            hit_id = hit['HITId']
+            hit_params[hit_id] = params
+            LOGGER.info('submitted HIT (id {})'.format(hit_id))
 
-    return dict(batch_id=batch_id, hits=hits)
+    return dict(batch_id=batch_id, hits=hits, hit_params=hit_params)
 
 
 def wait_hits(hit_ids, interval=15, client=None):
