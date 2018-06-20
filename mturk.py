@@ -15,7 +15,7 @@ import main
 SANDBOX_ENDPOINT_URL = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 PRODUCTION_ENDPOINT_URL = 'https://mturk-requester.us-east-1.amazonaws.com'
 
-DEFAULT_LIFETIME = 60 * 60 * 24
+DEFAULT_LIFETIME = 60 * 60 * 24 * 7
 DEFAULT_MAX_ASSIGNMENTS = 1
 
 ID_RE = re.compile(r'^id(\d+)$')
