@@ -9,7 +9,7 @@ from easl import EASL
 
 
 def evaluate(model_path, gold_standard_path):
-    model = EASL({'param_items': 1})
+    model = EASL()
     model.loadItem(model_path)
     model_scores_map = model.get_scores()
     ids = sorted(model_scores_map.keys())
