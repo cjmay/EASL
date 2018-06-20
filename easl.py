@@ -23,6 +23,7 @@ class EASL(object):
         param_match=0.1,
         param_mean_windows=False,
         param_overlap=0,
+        param_sample_var=False,
     )
 
     def __init__(self, params=None):
@@ -42,7 +43,7 @@ class EASL(object):
     def initItem(self, filePath):
         with open(filePath) as f:
             csvReader = csv.DictReader(f)
-            self.headerModel = csvReader.fieldnames + ['alpha', 'beta', 'mode', 'var', 'na_count']
+            self.headerModel = csvReader.fieldnames + ['alpha', 'beta', 'mode', 'var', 'na_count', 'scores']
             for row in csvReader:
                 if not ('id' in row and 'sent' in row):
                     print("Columns must have at least length of two (e.g., id, sent)")
@@ -54,6 +55,7 @@ class EASL(object):
                     mode=0.5,
                     var=0.0833,
                     na_count=0,
+                    scores='',
                 )
                 out_row.update(dict(
                     (k, replace_emoji_characters(v))
@@ -196,45 +198,24 @@ class EASL(object):
                     s_i = float(row["Answer.range{}".format(_i)]) / 100.
                     self.items[id_i]["alpha"] = float(self.items[id_i]["alpha"]) + s_i
                     self.items[id_i]["beta"] = float(self.items[id_i]["beta"]) + (1. - s_i)
+                    self.items[id_i]["scores"] += ' {:.2f}'.format(s_i)
                 self.items[id_i]["mode"] = self.mode(
                     self.items[id_i]["alpha"],
                     self.items[id_i]["beta"],
-                    self.items[id_i]["na_count"])
+                    self.items[id_i]["na_count"],
+                    self.items[id_i]["scores"])
                 self.items[id_i]["var"] = self.variance(
                     self.items[id_i]["alpha"],
                     self.items[id_i]["beta"],
-                    self.items[id_i]["na_count"])
+                    self.items[id_i]["na_count"],
+                    self.items[id_i]["scores"])
 
     def get_scores(self):
         return dict((item['id'], item['mode']) for item in self.items.values())
 
-    @classmethod
-    def alpha_from_beta(cls, b, m):
-        # compute alpha from beta (b) and mode (m)
-        if m == 1.0 or m == 0.0 or b <= 1:
-            print("undefined")
-            exit(1)
-        return m / (1. - m) * b - (2.0 * m - 1.) / (1. - m)
-
-    @classmethod
-    def beta_from_alpha(cls, a, m):
-        # compute beta from alpha (a) and mode (m)
-        if m == 1.0 or m == 0.0 or a <= 1:
-            print("undefined")
-            exit(1)
-        return (1. - m) * a / m - (1. - 2. * m) / m
-
-    @classmethod
-    def alpha_beta_from_mode_sum(cls, m, S):
-        # compute alpha and beta from mode and sum of alpha+beta
-        alpha = m * (S - 2.) + 1.
-        beta = S - (S - 2.) * m - 1.
-        assert alpha + beta == S
-        return alpha, beta
-
-    @classmethod
-    def mode(cls, alpha, beta, na_count):
+    def mode(self, alpha, beta, na_count, scores):
         alpha, beta, na_count = float(alpha), float(beta), int(na_count)
+        scores = [float(s) for s in scores.split()]
         diff = alpha - beta
         na_count = float(na_count)
         if diff < 0:
@@ -254,12 +235,20 @@ class EASL(object):
                 exit(1)
             return (alpha - 1.0) / (alpha + beta - 2.0)
 
-    @classmethod
-    def mean(cls, alpha, beta, na_count):
+    def mean(self, alpha, beta, na_count, scores):
         alpha, beta, na_count = float(alpha), float(beta), int(na_count)
+        scores = [float(s) for s in scores.split()]
         return alpha / (alpha + beta)
 
-    @classmethod
-    def variance(cls, alpha, beta, na_count):
+    def variance(self, alpha, beta, na_count, scores):
         alpha, beta, na_count = float(alpha), float(beta), int(na_count)
-        return (alpha * beta) / ((np.power(alpha + beta + na_count, 2.0)) * (alpha + beta + na_count + 1))
+        scores = [float(s) for s in scores.split()]
+        if self.get_param("param_sample_var"):
+            if len(scores) == 0:
+                return 1.
+            elif len(scores) == 1:
+                return 0.75
+            else:
+                return np.var(scores, ddof=1)
+        else:
+            return (alpha * beta) / ((np.power(alpha + beta + na_count, 2.0)) * (alpha + beta + na_count + 1))

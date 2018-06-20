@@ -64,6 +64,9 @@ if __name__ == "__main__":
     arg_parser.add_argument('--overlap', dest="param_overlap", type=int,
                             default=EASL.DEFAULT_PARAMS['param_overlap'],
                             help="number of items by which to overlap HITs")
+    arg_parser.add_argument('--sample-var', dest="param_sample_var", action='store_true',
+                            help="use sample variance with heuristic for 0, 1 samples "
+                                 "(default: Beta variance heuristic)")
 
     args = arg_parser.parse_args()
 

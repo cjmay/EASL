@@ -37,63 +37,26 @@ def script_data(request):
 #   num_hits + num_items - 1 <= 150
 # because the anchors for all num_hits HITs are removed from the candidates for
 # the other (num_items - 1) items in each HIT
-@mark.parametrize('num_hits,num_items,mean_windows,overlap',
-                  list(it.product((1, 30, 100), (1, 5, 25), ('',), (0,))) +
-                  list(it.product((1, 30), (1, 5), ('--mean-windows',), (0, 1, 2))))
-def test_scripts(script_data, num_hits, num_items, mean_windows, overlap):
+@mark.parametrize('update_generate, num_hits,num_items,bool_flags,overlap',
+                  list(it.product((False, True), (1, 30), (1, 5), ('', '--sample-var'), (0,))) +
+                  list(it.product((False, True), (1, 30), (1, 5), ('--mean-windows',), (0, 2))))
+def test_scripts(script_data, update_generate, num_hits, num_items, bool_flags, overlap):
     prefix = script_data['prefix']
     check_call(
         'python initialize.py {prefix}political.csv'.format(prefix=prefix).split())
     for round_num in range(NUM_ROUNDS):
-        check_call(
-            'python main.py --operation generate '
-            '--model {prefix}political_{round}.csv --hits {num_hits} --item {num_items} '
-            '{mean_windows} --overlap {overlap}'.format(
-                prefix=prefix,
-                num_hits=num_hits,
-                num_items=num_items,
-                mean_windows=mean_windows,
-                overlap=overlap,
-                round=round_num,
-            ).split())
-        simulate_hit_results(
-            '{prefix}political_hit_{next_round}.csv'.format(
-                prefix=prefix,
-                next_round=round_num + 1),
-            '{prefix}political_result_{next_round}.csv'.format(
-                prefix=prefix,
-                next_round=round_num + 1))
-        check_call(
-            'python main.py --operation update '
-            '--model {prefix}political_{round}.csv --item {num_items}'.format(
-                prefix=prefix,
-                num_items=num_items,
-                round=round_num,
-            ).split())
-
-
-# Note political.csv contains 150 items so we require the parameters to satisfy
-#   num_hits + num_items - 1 <= 150
-# because the anchors for all num_hits HITs are removed from the candidates for
-# the other (num_items - 1) items in each HIT
-@mark.parametrize('num_hits,num_items,mean_windows,overlap',
-                  list(it.product((1, 30, 100), (1, 5, 25), ('',), (0,))) +
-                  list(it.product((1, 30), (1, 5), ('--mean-windows',), (0, 1, 2))))
-def test_update_generate(script_data, num_hits, num_items, mean_windows, overlap):
-    prefix = script_data['prefix']
-    check_call(
-        'python initialize.py {prefix}political.csv'.format(prefix=prefix).split())
-    check_call(
-        'python main.py --operation generate '
-        '--model {prefix}political_0.csv --hits {num_hits} --item {num_items} '
-        '{mean_windows} --overlap {overlap}'.format(
-            prefix=prefix,
-            num_hits=num_hits,
-            num_items=num_items,
-            mean_windows=mean_windows,
-            overlap=overlap,
-        ).strip().split())
-    for round_num in range(NUM_ROUNDS):
+        if (not update_generate) or round_num == 0:
+            check_call(
+                'python main.py --operation generate '
+                '--model {prefix}political_{round}.csv --hits {num_hits} --item {num_items} '
+                '{bool_flags} --overlap {overlap}'.format(
+                    prefix=prefix,
+                    num_hits=num_hits,
+                    num_items=num_items,
+                    bool_flags=bool_flags,
+                    overlap=overlap,
+                    round=round_num,
+                ).split())
         simulate_hit_results(
             '{prefix}political_hit_{next_round}.csv'.format(
                 prefix=prefix,
@@ -104,12 +67,12 @@ def test_update_generate(script_data, num_hits, num_items, mean_windows, overlap
         check_call(
             'python main.py --operation {operation} '
             '--model {prefix}political_{round}.csv --item {num_items} --hits {num_hits} '
-            '{mean_windows} --overlap {overlap}'.format(
-                operation='update-generate' if round_num + 1 < NUM_ROUNDS else 'update',
+            '{bool_flags} --overlap {overlap}'.format(
+                operation='update-generate' if (update_generate and round_num + 1 < NUM_ROUNDS) else 'update',
                 prefix=prefix,
                 num_items=num_items,
                 num_hits=num_hits,
-                mean_windows=mean_windows,
+                bool_flags=bool_flags,
                 overlap=overlap,
                 round=round_num,
             ).strip().split())
