@@ -5,7 +5,7 @@ import random
 
 import numpy as np
 
-from scripts.encode_emoji import replace_emoji_characters
+from encode_emoji import replace_emoji_characters
 
 
 np.random.seed(12345)
