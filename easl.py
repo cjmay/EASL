@@ -8,7 +8,7 @@ import numpy as np
 from scripts.encode_emoji import replace_emoji_characters
 
 
-np.random.seed(12345) 
+np.random.seed(12345)
 random.seed(12345)
 
 
@@ -16,7 +16,7 @@ class EASL(object):
     """
     Efficient Annotation for Scalar Labels
     """
-    
+
     DEFAULT_PARAMS = dict(
         param_items=5,
         param_hits=20,
@@ -35,7 +35,7 @@ class EASL(object):
         self.headerHits = []
         print("model parameters")
         print(self.params)
-        
+
     def get_param(self, param_name):
         return self.params.get(param_name, self.DEFAULT_PARAMS[param_name])
 
@@ -65,7 +65,7 @@ class EASL(object):
         csvReader = csv.DictReader(open(filePath, 'r'))
         self.headerModel = csvReader.fieldnames
         for _h in self.headerModel:
-            for _i in range(1, self.get_param("param_items")+1):
+            for _i in range(1, self.get_param("param_items") + 1):
                 self.headerHits.append(_h + str(_i))
 
         for row in csvReader:
@@ -90,7 +90,7 @@ class EASL(object):
 
             for i, id_i in enumerate(ids):
                 for headerItem in self.headerModel:
-                    rowDict[headerItem + str(i+1)] = self.items[id_i][headerItem]
+                    rowDict[headerItem + str(i + 1)] = self.items[id_i][headerItem]
             csvWriter.writerow(rowDict)
 
     def getNextK(self, k, iterNum):
@@ -175,7 +175,7 @@ class EASL(object):
                             candidate_id.append(_i)
                             candidate_prob.append(match_quality)
 
-                    candidate_prob = [p/sum_prob for p in candidate_prob]
+                    candidate_prob = [p / sum_prob for p in candidate_prob]
                     selected_ids = np.random.choice(
                         candidate_id,
                         self.get_param("param_items") - 1,
@@ -187,17 +187,17 @@ class EASL(object):
 
     def alpha_from_beta(self, b, m):
         # compute alpha from beta (b) and mode (m)
-        if m==1.0 or m==0.0 or b<=1:
+        if m == 1.0 or m == 0.0 or b <= 1:
             print("undefined")
             exit(1)
-        return m/(1.-m)*b - (2.0*m-1.)/(1.-m)
+        return m / (1. - m) * b - (2.0 * m - 1.) / (1. - m)
 
     def beta_from_alpha(self, a, m):
         # compute beta from alpha (a) and mode (m)
-        if m==1.0 or m==0.0 or a<=1:
+        if m == 1.0 or m == 0.0 or a <= 1:
             print("undefined")
             exit(1)
-        return (1.-m)*a/m - (1.-2.*m)/m
+        return (1. - m) * a / m - (1. - 2. * m) / m
 
     def alpha_beta_from_mode_sum(self, m, S):
         # compute alpha and beta from mode and sum of alpha+beta
@@ -243,7 +243,7 @@ class EASL(object):
                 if row.get("Answer.na{}".format(_i), "off").lower() == "on":
                     self.items[id_i]["na_count"] = int(self.items[id_i]["na_count"]) + 1
                 else:
-                    s_i = float(row["Answer.range{}".format(_i)])/100.
+                    s_i = float(row["Answer.range{}".format(_i)]) / 100.
                     self.items[id_i]["alpha"] = float(self.items[id_i]["alpha"]) + s_i
                     self.items[id_i]["beta"] = float(self.items[id_i]["beta"]) + (1. - s_i)
                 self.items[id_i]["mode"] = self.mode(

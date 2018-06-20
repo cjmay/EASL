@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 
-import os,sys
+import os
+import sys
 
 from easl import EASL
 
@@ -16,4 +17,3 @@ out_file_path = os.path.join(dir_path, out_file_name)
 model = EASL()
 model.initItem(in_file_path)
 model.saveItem(out_file_path)
-

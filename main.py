@@ -18,11 +18,11 @@ def run(operation, model_path, params):
 
     if operation in ("update", "update-generate"):
         # update the model
-        observe_path = os.path.join(model_dir, model_name + '_result_' + str(iter_num+1) + os.extsep + "csv")
+        observe_path = os.path.join(model_dir, model_name + '_result_' + str(iter_num + 1) + os.extsep + "csv")
         if not os.path.exists(observe_path):
             raise Exception("Mturk result file is not found. {} is expected.".format(observe_path))
 
-        new_model_path = os.path.join(model_dir, model_name + '_' + str(iter_num+1) + os.extsep + "csv")
+        new_model_path = os.path.join(model_dir, model_name + '_' + str(iter_num + 1) + os.extsep + "csv")
         model.loadItem(model_path)
         model.observe(observe_path)
         model.saveItem(new_model_path)
@@ -33,7 +33,7 @@ def run(operation, model_path, params):
     if operation in ("generate", "update-generate"):
         # generate next hits
         model.loadItem(model_path)
-        hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iter_num+1) + os.extsep + "csv")
+        hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iter_num + 1) + os.extsep + "csv")
         next_items = model.getNextK(params['param_hits'], iter_num)
         model.generateHits(hit_path, next_items)
 
@@ -52,9 +52,12 @@ if __name__ == "__main__":
     arg_parser.add_argument('--match', dest="param_match", type=float,
                             default=EASL.DEFAULT_PARAMS['param_match'],
                             help="parameter gamma for match quality (default 0.1) ")
-    arg_parser.add_argument('--hits', dest="param_hits", type=int,
-                            default=EASL.DEFAULT_PARAMS['param_hits'],
-                            help="number of HITs to generate (recommend: hits = N/k, N=number of entire sample points, k=items per hit) ")
+    arg_parser.add_argument(
+        '--hits',
+        dest="param_hits",
+        type=int,
+        default=EASL.DEFAULT_PARAMS['param_hits'],
+        help="number of HITs to generate (recommend: hits = N/k, N=number of entire sample points, k=items per hit) ")
     arg_parser.add_argument('--mean-windows', dest="param_mean_windows", action='store_true',
                             help="use mean windows to compute HITs "
                                  "(default: original EASL method)")
