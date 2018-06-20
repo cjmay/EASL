@@ -24,7 +24,7 @@ PARAM_RE = re.compile(r'^(?:id\d+|sent\d+)$')
 LOGGER = logging.getLogger(__name__)
 
 
-def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None, interval=15):
+def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None, interval=60):
     main.run('generate', model_path, params)
     model_pieces = os.path.basename(os.path.splitext(model_path)[0]).split('_')
     model_dirname = os.path.dirname(model_path)
@@ -157,7 +157,7 @@ def publish_batch(hit_type_id, hit_layout_id, batch_csv_path, batch_id=None,
     return dict(batch_id=batch_id, hits=hits, hit_params=hit_params)
 
 
-def wait_hits(hit_ids, interval=15, client=None):
+def wait_hits(hit_ids, interval=60, client=None):
     if client is None:
         client = boto3.client('mturk')
 
@@ -169,7 +169,7 @@ def wait_hits(hit_ids, interval=15, client=None):
     return hit_assignments
 
 
-def wait_hit(hit_id, interval=15, client=None):
+def wait_hit(hit_id, interval=60, client=None):
     if client is None:
         client = boto3.client('mturk')
 
