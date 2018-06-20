@@ -99,7 +99,7 @@ Use `mturk.loop` to automate the EASL loop (steps 2 through 6 in the previous se
 
 ```python
 import boto3
-from mturk import loop
+from mturk import loop, SANDBOX_ENDPOINT_URL, PRODUCTION_ENDPOINT_URL
 import logging
 
 LOGGER = logging.getLogger('mturk')
@@ -110,7 +110,8 @@ formatter = logging.Formatter('%(asctime)-15s %(levelname)s: %(message)s')
 handler.setFormatter(formatter)
 LOGGER.addHandler(handler)
 
-client = boto3.client('mturk')
+# Set endpoint_url=SANDBOX_ENDPOINT_URL for development
+client = boto3.client('mturk', endpoint_url=PRODUCTION_ENDPOINT_URL)
 loop('experiments/political/political_0.csv',
      {'param_hits': 25},
      'ABCDEFG', 'HIJKLMNOP',
@@ -122,6 +123,5 @@ loop('experiments/political/political_0.csv',
 Use the following snippet to run some tests.
 
 ```bash
-flake8
-pytest tests
+flake8 && pytest tests
 ```
