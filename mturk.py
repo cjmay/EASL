@@ -102,8 +102,12 @@ def write_results(results_path, hit_assignment_params_triples):
                 HITId=hit['HITId'],
                 HITTypeId=hit['HITTypeId'],
                 HITLayoutId=hit['HITLayoutId'],
+                RequesterAnnotation=hit['RequesterAnnotation'],
                 AssignmentId=assignment['AssignmentId'],
                 WorkerId=assignment['WorkerId'],
+                WorkTimeInSeconds=round(
+                    (assignment['SubmitTime'] -
+                     assignment['AcceptTime']).total_seconds()),
             )
             row.update(dict(
                 ('Input.{}'.format(k), v)
