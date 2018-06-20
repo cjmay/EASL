@@ -185,56 +185,6 @@ class EASL(object):
 
         return k_items
 
-    def alpha_from_beta(self, b, m):
-        # compute alpha from beta (b) and mode (m)
-        if m == 1.0 or m == 0.0 or b <= 1:
-            print("undefined")
-            exit(1)
-        return m / (1. - m) * b - (2.0 * m - 1.) / (1. - m)
-
-    def beta_from_alpha(self, a, m):
-        # compute beta from alpha (a) and mode (m)
-        if m == 1.0 or m == 0.0 or a <= 1:
-            print("undefined")
-            exit(1)
-        return (1. - m) * a / m - (1. - 2. * m) / m
-
-    def alpha_beta_from_mode_sum(self, m, S):
-        # compute alpha and beta from mode and sum of alpha+beta
-        alpha = m * (S - 2.) + 1.
-        beta = S - (S - 2.) * m - 1.
-        assert alpha + beta == S
-        return alpha, beta
-
-    def mode(self, alpha, beta, na_count):
-        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
-        diff = alpha - beta
-        if diff < 0:
-            alpha += min(na_count, -diff)
-        else:
-            beta += min(na_count, diff)
-        na_count -= min(na_count, abs(diff))
-        alpha += na_count / 2.
-        beta += na_count / 2.
-        na_count = 0
-
-        if alpha == 1. and beta == 1.:
-            return 0.5
-        else:
-            assert alpha + beta > 2.0
-            if alpha < 1.0 and beta < 1.0:
-                print("Error: alpha={}, beta={}".format(str(alpha), str(beta)))
-                exit(1)
-            return (alpha - 1.0) / (alpha + beta - 2.0)
-
-    def mean(self, alpha, beta, na_count):
-        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
-        return alpha / (alpha + beta)
-
-    def variance(self, alpha, beta, na_count):
-        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
-        return (alpha * beta) / ((np.power(alpha + beta + na_count, 2.0)) * (alpha + beta + na_count + 1))
-
     def observe(self, observe_path):
         csvReader = csv.DictReader(open(observe_path, 'r'))
         for row in csvReader:
@@ -257,3 +207,59 @@ class EASL(object):
 
     def get_scores(self):
         return dict((item['id'], item['mode']) for item in self.items.values())
+
+    @classmethod
+    def alpha_from_beta(cls, b, m):
+        # compute alpha from beta (b) and mode (m)
+        if m == 1.0 or m == 0.0 or b <= 1:
+            print("undefined")
+            exit(1)
+        return m / (1. - m) * b - (2.0 * m - 1.) / (1. - m)
+
+    @classmethod
+    def beta_from_alpha(cls, a, m):
+        # compute beta from alpha (a) and mode (m)
+        if m == 1.0 or m == 0.0 or a <= 1:
+            print("undefined")
+            exit(1)
+        return (1. - m) * a / m - (1. - 2. * m) / m
+
+    @classmethod
+    def alpha_beta_from_mode_sum(cls, m, S):
+        # compute alpha and beta from mode and sum of alpha+beta
+        alpha = m * (S - 2.) + 1.
+        beta = S - (S - 2.) * m - 1.
+        assert alpha + beta == S
+        return alpha, beta
+
+    @classmethod
+    def mode(cls, alpha, beta, na_count):
+        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
+        diff = alpha - beta
+        if diff < 0:
+            alpha += min(na_count, -diff)
+        else:
+            beta += min(na_count, diff)
+        na_count -= min(na_count, abs(diff))
+        alpha += na_count / 2.
+        beta += na_count / 2.
+        na_count = 0
+
+        if alpha == 1. and beta == 1.:
+            return 0.5
+        else:
+            assert alpha + beta > 2.0
+            if alpha < 1.0 and beta < 1.0:
+                print("Error: alpha={}, beta={}".format(str(alpha), str(beta)))
+                exit(1)
+            return (alpha - 1.0) / (alpha + beta - 2.0)
+
+    @classmethod
+    def mean(cls, alpha, beta, na_count):
+        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
+        return alpha / (alpha + beta)
+
+    @classmethod
+    def variance(cls, alpha, beta, na_count):
+        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
+        return (alpha * beta) / ((np.power(alpha + beta + na_count, 2.0)) * (alpha + beta + na_count + 1))
