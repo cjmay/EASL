@@ -35,13 +35,16 @@ def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None
         client = boto3.client('mturk')
 
     for round_num in range(num_rounds):
+        model_index = model_start_index + round_num
+        LOGGER.info('starting round {} (model index {})'.format(round_num, model_index))
+
         LOGGER.info('submitting batch')
         batch_data = publish_batch(
             hit_type_id,
             hit_layout_id,
             os.path.join(
                 model_dirname,
-                '{}_hit_{}{}csv'.format(model_name, model_start_index + round_num + 1, os.extsep)),
+                '{}_hit_{}{}csv'.format(model_name, model_index + 1, os.extsep)),
             client=client)
         hits = batch_data['hits']
         hit_params = batch_data['hit_params']
@@ -59,7 +62,7 @@ def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None
         write_results(
             os.path.join(
                 model_dirname,
-                '{}_result_{}{}csv'.format(model_name, model_start_index + round_num + 1, os.extsep)),
+                '{}_result_{}{}csv'.format(model_name, model_index + 1, os.extsep)),
             [
                 (hit, assignment, hit_params[hit['HITId']])
                 for hit in hits
@@ -76,7 +79,7 @@ def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None
             operation,
             os.path.join(
                 model_dirname,
-                '{}_{}{}csv'.format(model_name, model_start_index + round_num, os.extsep)),
+                '{}_{}{}csv'.format(model_name, model_index, os.extsep)),
             params)
 
 
