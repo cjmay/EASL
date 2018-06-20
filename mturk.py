@@ -85,6 +85,10 @@ def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None
             params)
 
 
+def ensure_list(x):
+    return x if isinstance(x, list) else [x]
+
+
 def parse_answer(answer):
     xml_doc = xmltodict.parse(answer)
     return dict(
@@ -93,7 +97,7 @@ def parse_answer(answer):
             answer_field.get('SelectionIdentifier',
                              answer_field.get('FreeText', None))
         )
-        for answer_field in xml_doc['QuestionFormAnswers']['Answer'])
+        for answer_field in ensure_list(xml_doc['QuestionFormAnswers']['Answer']))
 
 
 def write_results(results_path, hit_assignment_params_triples):
