@@ -2,11 +2,14 @@
 
 import csv
 import random
+import logging
 
 import numpy as np
 
 from encode_emoji import replace_emoji_characters
 
+
+LOGGER = logging.getLogger(__name__)
 
 np.random.seed(12345)
 random.seed(12345)
@@ -34,8 +37,7 @@ class EASL(object):
         self.items = {}
         self.headerModel = []
         self.headerHits = []
-        print("model parameters")
-        print(self.params)
+        LOGGER.info("model parameters: {}".format(self.params))
 
     def get_param(self, param_name):
         return self.params.get(param_name, self.DEFAULT_PARAMS[param_name])
@@ -46,8 +48,7 @@ class EASL(object):
             self.headerModel = csvReader.fieldnames + ['alpha', 'beta', 'mode', 'var', 'na_count', 'scores']
             for row in csvReader:
                 if not ('id' in row and 'sent' in row):
-                    print("Columns must have at least length of two (e.g., id, sent)")
-                    exit(1)
+                    raise Exception("Columns must have at least length of two (e.g., id, sent)")
 
                 out_row = dict(
                     alpha=1,
@@ -231,8 +232,7 @@ class EASL(object):
         else:
             assert alpha + beta > 2.0
             if alpha < 1.0 and beta < 1.0:
-                print("Error: alpha={}, beta={}".format(str(alpha), str(beta)))
-                exit(1)
+                raise Exception("alpha={}, beta={}".format(str(alpha), str(beta)))
             return (alpha - 1.0) / (alpha + beta - 2.0)
 
     def mean(self, alpha, beta, na_count, scores):
