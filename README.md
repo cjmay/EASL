@@ -9,10 +9,13 @@ See the [preprint](https://arxiv.org/abs/1806.01170) ([to appear in ACL 2018](ht
 - - - 
 ## Requirements
 
-- Python 3.x
-- numpy, scipy (`pip install -r requirements.txt`)
+- Python 3
+- The Python packages listed in `requirements.txt` (use `pip install -r requirements.txt` to install them)
+- For testing, the Python packages listed in `test-requirements.txt` (use `pip install -r test-requirements.txt` to install them)
 
 ## Usage
+
+### Basic usage
 
 We show how to use EASL for one round of annotation on a prepared data set, a collection of sentences we wish to annotate with their political stances (between liberal and conservative).  We have already created a Mechanical Turk HIT layout template (`templates/political/template_political.html`) and a file containing the data set in the format EASL expects (`experiments/political/political.csv`). 
     
@@ -89,3 +92,36 @@ We show how to use EASL for one round of annotation on a prepared data set, a co
     ```bash
     python main.py --operation update-generate --model experiments/political/political_0.csv --hits 25
     ```
+    
+### Automation
+
+Use `mturk.loop` to automate the EASL loop (steps 2 through 6 in the previous section).  For example, the following snippet runs four rounds of EASL on the political data, using HIT type id `ABCDEFG` and HIT layout id `HIJKLMNOP`.  (These identifiers can currently be found by going to the "Create" tab in the Mechanical Turk requester web interface and clicking on the name of an existing project.)
+
+```python
+import boto3
+from mturk import loop
+import logging
+
+LOGGER = logging.getLogger('mturk')
+LOGGER.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)-15s %(levelname)s: %(message)s')
+handler.setFormatter(formatter)
+LOGGER.addHandler(handler)
+
+client = boto3.client('mturk')
+loop('experiments/political/political_0.csv',
+     {'param_hits': 25},
+     'ABCDEFG', 'HIJKLMNOP',
+     4, client=client)
+```
+
+### Running tests
+
+Use the following snippet to run some tests.
+
+```bash
+flake8
+pytest tests
+```
