@@ -55,7 +55,9 @@ def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None
 
         LOGGER.info('approving assignments')
         for (hit_id, assignments) in hit_assignments.items():
-            approve_assignments([assignment['AssignmentId'] for assignment in assignments],
+            approve_assignments([assignment['AssignmentId']
+                                 for assignment in assignments
+                                 if assignment['AssignmentStatus'] == 'Submitted'],
                                 client=client)
 
         LOGGER.info('writing results')
