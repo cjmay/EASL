@@ -27,6 +27,7 @@ class EASL(object):
         param_mean_windows=False,
         param_overlap=0,
         param_sample_var=False,
+        param_na_adjust=False,
     )
 
     def __init__(self, params=None):
@@ -214,18 +215,26 @@ class EASL(object):
     def get_scores(self):
         return dict((item['id'], item['mode']) for item in self.items.values())
 
+    def _process_params(self, alpha, beta, na_count, scores):
+        return (
+            float(alpha),
+            float(beta),
+            int(na_count),
+            [float(s) for s in scores.split()],
+        )
+
     def mode(self, alpha, beta, na_count, scores):
-        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
-        scores = [float(s) for s in scores.split()]
-        diff = alpha - beta
-        na_count = float(na_count)
-        if diff < 0:
-            alpha += min(na_count, -diff)
-        else:
-            beta += min(na_count, diff)
-        na_count -= min(na_count, abs(diff))
-        alpha += na_count / 2.
-        beta += na_count / 2.
+        alpha, beta, na_count, scores = self._process_params(alpha, beta, na_count, scores)
+        if self.get_param('param_na_adjust'):
+            diff = alpha - beta
+            na_count = float(na_count)
+            if diff < 0:
+                alpha += min(na_count, -diff)
+            else:
+                beta += min(na_count, diff)
+            na_count -= min(na_count, abs(diff))
+            alpha += na_count / 2.
+            beta += na_count / 2.
 
         if alpha == 1. and beta == 1.:
             return 0.5
@@ -236,13 +245,11 @@ class EASL(object):
             return (alpha - 1.0) / (alpha + beta - 2.0)
 
     def mean(self, alpha, beta, na_count, scores):
-        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
-        scores = [float(s) for s in scores.split()]
+        alpha, beta, na_count, scores = self._process_params(alpha, beta, na_count, scores)
         return alpha / (alpha + beta)
 
     def variance(self, alpha, beta, na_count, scores):
-        alpha, beta, na_count = float(alpha), float(beta), int(na_count)
-        scores = [float(s) for s in scores.split()]
+        alpha, beta, na_count, scores = self._process_params(alpha, beta, na_count, scores)
         if self.get_param("param_sample_var"):
             if len(scores) == 0:
                 return 1.
@@ -250,5 +257,7 @@ class EASL(object):
                 return 0.75
             else:
                 return np.var(scores, ddof=1)
-        else:
+        elif self.get_param("param_na_adjust"):
             return (alpha * beta) / ((np.power(alpha + beta + na_count, 2.0)) * (alpha + beta + na_count + 1))
+        else:
+            return (alpha * beta) / ((np.power(alpha + beta, 2.0)) * (alpha + beta + 1))

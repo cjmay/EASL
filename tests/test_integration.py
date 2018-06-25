@@ -38,7 +38,7 @@ def script_data(request):
 # because the anchors for all num_hits HITs are removed from the candidates for
 # the other (num_items - 1) items in each HIT
 @mark.parametrize('update_generate, num_hits,num_items,bool_flags,overlap',
-                  list(it.product((False, True), (1, 30), (1, 5), ('', '--sample-var'), (0,))) +
+                  list(it.product((False, True), (1, 30), (1, 5), ('', '--sample-var', '--na-adjust'), (0,))) +
                   list(it.product((False, True), (1, 30), (1, 5), ('--mean-windows',), (0, 2))))
 def test_scripts(script_data, update_generate, num_hits, num_items, bool_flags, overlap):
     prefix = script_data['prefix']
