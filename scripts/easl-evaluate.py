@@ -1,27 +1,7 @@
 #!/usr/bin/env python
 
 
-from csv import DictReader
-
-from scipy.stats import spearmanr
-
-from easl import EASL
-
-
-def evaluate(model_path, gold_standard_path):
-    model = EASL()
-    model.loadItem(model_path)
-    model_scores_map = model.get_scores()
-    ids = sorted(model_scores_map.keys())
-    model_scores = [model_scores_map[id_] for id_ in ids]
-
-    gold_labels_map = dict()
-    with open(gold_standard_path) as f:
-        for row in DictReader(f):
-            gold_labels_map[row['id']] = float(row['label'])
-    gold_labels = [gold_labels_map[id_] for id_ in ids]
-
-    print(spearmanr(gold_labels, model_scores).correlation)
+from easl import evaluate
 
 
 if __name__ == '__main__':

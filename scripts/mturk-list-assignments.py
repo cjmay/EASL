@@ -3,7 +3,7 @@
 
 import boto3
 
-from mturk import list_assignments, PRODUCTION_ENDPOINT_URL, SANDBOX_ENDPOINT_URL
+from easl.mturk import list_assignments, PRODUCTION_ENDPOINT_URL, SANDBOX_ENDPOINT_URL
 
 
 if __name__ == '__main__':

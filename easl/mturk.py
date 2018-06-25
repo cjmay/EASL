@@ -9,8 +9,7 @@ import json
 import boto3
 import xmltodict
 
-import main
-
+import easl
 
 SANDBOX_ENDPOINT_URL = 'https://mturk-requester-sandbox.us-east-1.amazonaws.com'
 PRODUCTION_ENDPOINT_URL = 'https://mturk-requester.us-east-1.amazonaws.com'
@@ -25,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None, interval=60):
-    main.run('generate', model_path, params)
+    easl.run('generate', model_path, params)
     model_pieces = os.path.basename(os.path.splitext(model_path)[0]).split('_')
     model_dirname = os.path.dirname(model_path)
     model_name = '_'.join(model_pieces[:-1])
@@ -77,7 +76,7 @@ def loop(model_path, params, hit_type_id, hit_layout_id, num_rounds, client=None
         else:
             operation = 'update'
             LOGGER.info('updating model')
-        main.run(
+        easl.run(
             operation,
             os.path.join(
                 model_dirname,

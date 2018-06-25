@@ -3,10 +3,13 @@
 import csv
 import random
 import logging
+import os
+from csv import DictReader
 
 import numpy as np
+from scipy.stats import spearmanr
 
-from encode_emoji import replace_emoji_characters
+from .encode_emoji import replace_emoji_characters
 
 
 LOGGER = logging.getLogger(__name__)
@@ -261,3 +264,51 @@ class EASL(object):
             return (alpha * beta) / ((np.power(alpha + beta + na_count, 2.0)) * (alpha + beta + na_count + 1))
         else:
             return (alpha * beta) / ((np.power(alpha + beta, 2.0)) * (alpha + beta + 1))
+
+
+def run(operation, model_path, params):
+    if operation not in ('update', 'update-generate', 'generate'):
+        raise ValueError('unknown operation {}'.format(operation))
+
+    model = EASL(params)
+
+    model_dir = os.path.dirname(model_path)
+    model_name = "_".join(os.path.basename(model_path).split('_')[:-1])
+    iter_num = int(os.path.splitext(os.path.basename(model_path))[0].split('_')[-1])
+
+    if operation in ("update", "update-generate"):
+        # update the model
+        observe_path = os.path.join(model_dir, model_name + '_result_' + str(iter_num + 1) + os.extsep + "csv")
+        if not os.path.exists(observe_path):
+            raise Exception("Mturk result file is not found. {} is expected.".format(observe_path))
+
+        new_model_path = os.path.join(model_dir, model_name + '_' + str(iter_num + 1) + os.extsep + "csv")
+        model.loadItem(model_path)
+        model.observe(observe_path)
+        model.saveItem(new_model_path)
+
+        model_path = new_model_path
+        iter_num += 1
+
+    if operation in ("generate", "update-generate"):
+        # generate next hits
+        model.loadItem(model_path)
+        hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iter_num + 1) + os.extsep + "csv")
+        next_items = model.getNextK(params['param_hits'], iter_num)
+        model.generateHits(hit_path, next_items)
+
+
+def evaluate(model_path, gold_standard_path):
+    model = EASL()
+    model.loadItem(model_path)
+    model_scores_map = model.get_scores()
+    ids = sorted(model_scores_map.keys())
+    model_scores = [model_scores_map[id_] for id_ in ids]
+
+    gold_labels_map = dict()
+    with open(gold_standard_path) as f:
+        for row in DictReader(f):
+            gold_labels_map[row['id']] = float(row['label'])
+    gold_labels = [gold_labels_map[id_] for id_ in ids]
+
+    print(spearmanr(gold_labels, model_scores).correlation)

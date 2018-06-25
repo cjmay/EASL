@@ -1,41 +1,7 @@
-#!/bin/python
-# -*- coding: utf-8 -*-
-
-import os
-
-from easl import EASL
+#!/usr/bin/env python
 
 
-def run(operation, model_path, params):
-    if operation not in ('update', 'update-generate', 'generate'):
-        raise ValueError('unknown operation {}'.format(operation))
-
-    model = EASL(params)
-
-    model_dir = os.path.dirname(model_path)
-    model_name = "_".join(os.path.basename(model_path).split('_')[:-1])
-    iter_num = int(os.path.splitext(os.path.basename(model_path))[0].split('_')[-1])
-
-    if operation in ("update", "update-generate"):
-        # update the model
-        observe_path = os.path.join(model_dir, model_name + '_result_' + str(iter_num + 1) + os.extsep + "csv")
-        if not os.path.exists(observe_path):
-            raise Exception("Mturk result file is not found. {} is expected.".format(observe_path))
-
-        new_model_path = os.path.join(model_dir, model_name + '_' + str(iter_num + 1) + os.extsep + "csv")
-        model.loadItem(model_path)
-        model.observe(observe_path)
-        model.saveItem(new_model_path)
-
-        model_path = new_model_path
-        iter_num += 1
-
-    if operation in ("generate", "update-generate"):
-        # generate next hits
-        model.loadItem(model_path)
-        hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iter_num + 1) + os.extsep + "csv")
-        next_items = model.getNextK(params['param_hits'], iter_num)
-        model.generateHits(hit_path, next_items)
+from easl import EASL, run
 
 
 if __name__ == "__main__":

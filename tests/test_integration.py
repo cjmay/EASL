@@ -43,13 +43,16 @@ def script_data(request):
 def test_scripts(script_data, update_generate, num_hits, num_items, bool_flags, overlap):
     prefix = script_data['prefix']
     check_call(
-        'python initialize.py {prefix}political.csv'.format(prefix=prefix).split())
+        'python {script} {prefix}political.csv'.format(
+            script=os.path.join('scripts', 'easl-initialize.py'),
+            prefix=prefix).split())
     for round_num in range(NUM_ROUNDS):
         if (not update_generate) or round_num == 0:
             check_call(
-                'python main.py --operation generate '
+                'python {script} --operation generate '
                 '--model {prefix}political_{round}.csv --hits {num_hits} --item {num_items} '
                 '{bool_flags} --overlap {overlap}'.format(
+                    script=os.path.join('scripts', 'easl-main.py'),
                     prefix=prefix,
                     num_hits=num_hits,
                     num_items=num_items,
@@ -65,9 +68,10 @@ def test_scripts(script_data, update_generate, num_hits, num_items, bool_flags, 
                 prefix=prefix,
                 next_round=round_num + 1))
         check_call(
-            'python main.py --operation {operation} '
+            'python {script} --operation {operation} '
             '--model {prefix}political_{round}.csv --item {num_items} --hits {num_hits} '
             '{bool_flags} --overlap {overlap}'.format(
+                script=os.path.join('scripts', 'easl-main.py'),
                 operation='update-generate' if (update_generate and round_num + 1 < NUM_ROUNDS) else 'update',
                 prefix=prefix,
                 num_items=num_items,

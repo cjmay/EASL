@@ -3,7 +3,7 @@
 
 import boto3
 
-from mturk import (
+from easl.mturk import (
     publish_batch, DEFAULT_LIFETIME, DEFAULT_MAX_ASSIGNMENTS,
     PRODUCTION_ENDPOINT_URL, SANDBOX_ENDPOINT_URL,
 )
