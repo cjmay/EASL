@@ -10,7 +10,7 @@ See the [preprint](https://arxiv.org/abs/1806.01170) ([to appear in ACL 2018](ht
 ## Requirements
 
 - Python 3
-- The Python packages listed in `requirements.txt` (use `pip install -r requirements.txt` to install them)
+- The Python packages listed in `setup.py` (use `pip install .` in this directory to install them along with the EASL package itself)
 - For testing, the Python packages listed in `test-requirements.txt` (use `pip install -r test-requirements.txt` to install them)
 
 ## Usage
