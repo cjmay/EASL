@@ -7,10 +7,10 @@ from easl import EASL, run
 if __name__ == "__main__":
     import argparse
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--operation', dest="operation",
-                            choices=["generate", "update", "update-generate"], required=True,
+    arg_parser.add_argument('operation',
+                            choices=["generate", "update", "update-generate"],
                             help="operation to run")
-    arg_parser.add_argument('--model', dest="model_path", required=True,
+    arg_parser.add_argument('model_path',
                             help="model file path")
     arg_parser.add_argument('--item', dest="param_items", type=int,
                             default=EASL.DEFAULT_PARAMS['param_items'],

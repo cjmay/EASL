@@ -64,7 +64,7 @@ We show how to use EASL for one round of annotation on a prepared data set, a co
     We generate our HITs by running the following command. 
     
     ```bash
-    python scripts/easl-main.py --operation generate --model experiments/political/political_0.csv --hits 25
+    python scripts/easl-main.py generate experiments/political/political_0.csv --hits 25
     ```
 
     This generates `experiments/political/political_hit_1.csv` that has 25 HITs (and five items per HIT, the default).
@@ -78,7 +78,7 @@ We show how to use EASL for one round of annotation on a prepared data set, a co
 1. Update the model
 
     ```bash
-    python scripts/easl-main.py --operation update --model experiments/political/political_0.csv
+    python scripts/easl-main.py update experiments/political/political_0.csv
     ```
 
     This takes `political_0.csv`, `political_result_1.csv`, and then generates `political_1.csv` (all in the directory `experiments/political/`).
@@ -90,7 +90,7 @@ We show how to use EASL for one round of annotation on a prepared data set, a co
     For convenience, you may use the combined operation `update-generate` to update the model based on HIT results and generate a new batch of HIT data all at once.  For example, the following command updates the model given by `political_0.csv` with the results from `political_result_1.csv` (producing `political_1.csv`) and then generates new batch data `political_hit_2.csv`:
 
     ```bash
-    python scripts/easl-main.py --operation update-generate --model experiments/political/political_0.csv --hits 25
+    python scripts/easl-main.py update-generate experiments/political/political_0.csv --hits 25
     ```
     
 ### Automation
