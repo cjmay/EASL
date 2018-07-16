@@ -21,7 +21,7 @@ if __name__ == "__main__":
                         help="model file path")
     parser.add_argument('--item', dest="param_items", type=int,
                         default=EASL.DEFAULT_PARAMS['param_items'],
-                        help="number of items per hit (default 5) ")
+                        help="number of items per hit")
     parser.add_argument('--match', dest="param_match", type=float,
                         default=EASL.DEFAULT_PARAMS['param_match'],
                         help="parameter gamma for match quality (default 0.1) ")

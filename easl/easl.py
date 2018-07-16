@@ -34,6 +34,15 @@ class EASL(object):
         param_na_adjust=False,
     )
 
+    INITIAL_ITEM_STATE = dict(
+        alpha=1,
+        beta=1,
+        mode=0.5,
+        var=0.0833,
+        na_count=0,
+        scores='',
+    )
+
     def __init__(self, params=None):
         if params is None:
             params = {}
@@ -50,23 +59,16 @@ class EASL(object):
     def initItem(self, filePath):
         with open(filePath) as f:
             csvReader = csv.DictReader(f)
-            self.headerModel = csvReader.fieldnames + ['alpha', 'beta', 'mode', 'var', 'na_count', 'scores']
+            self.headerModel = csvReader.fieldnames + list(self.INITIAL_ITEM_STATE.keys())
             for row in csvReader:
                 if not ('id' in row and 'sent' in row):
                     raise Exception("Columns must have at least length of two (e.g., id, sent)")
 
                 out_row = dict(
-                    alpha=1,
-                    beta=1,
-                    mode=0.5,
-                    var=0.0833,
-                    na_count=0,
-                    scores='',
-                )
-                out_row.update(dict(
                     (k, replace_emoji_characters(v))
                     for (k, v) in row.items()
-                ))
+                )
+                out_row.update(self.INITIAL_ITEM_STATE)
                 self.items[out_row["id"]] = out_row
 
     def loadItem(self, filePath):
@@ -101,14 +103,14 @@ class EASL(object):
                     rowDict[headerItem + str(i + 1)] = self.items[id_i][headerItem]
             csvWriter.writerow(rowDict)
 
-    def getNextK(self, iterNum):
+    def get_next_k(self, iter_num):
         k = self.get_param('param_hits')
         if not k:
             k = ceil(len(self.items) / self.get_param('param_items'))
 
         k_items = {}
 
-        if iterNum == 0:
+        if iter_num == 0:
             # The first iteration will cover all items (maybe more than once).
             id_list = []
             while len(id_list) < k * self.get_param('param_items'):
@@ -116,9 +118,10 @@ class EASL(object):
                 random.shuffle(id_sublist)
                 id_list += id_sublist
 
-            for hit_start in range(0, k, self.get_param('param_items')):
-                k_items[id_list[hit_start]] = id_list[hit_start + 1:
-                                                      hit_start + self.get_param('param_items')]
+            for hit_num in range(k):
+                hit_start = hit_num * self.get_param('param_items')
+                hit_end = hit_start + self.get_param('param_items')
+                k_items[id_list[hit_start]] = id_list[hit_start + 1:hit_end]
 
         else:
             if self.get_param('param_mean_windows'):
@@ -298,7 +301,7 @@ def run(operation, model_path, params):
         # generate next hits
         model.loadItem(model_path)
         hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iter_num + 1) + os.extsep + "csv")
-        next_items = model.getNextK(iter_num)
+        next_items = model.get_next_k(iter_num)
         model.generateHits(hit_path, next_items)
 
 
