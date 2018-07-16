@@ -34,7 +34,7 @@ def test_variance(na_count):
 
 @mark.parametrize('total_num_items,num_items,num_hits,expected_num_hits',
                   [(30, 7, 4, 4), (30, 7, 0, 5)])
-def test_get_next_k_0(total_num_items,num_items,num_hits, expected_num_hits):
+def test_get_next_k_0(total_num_items, num_items, num_hits, expected_num_hits):
     easl = EASL({'param_items': num_items, 'param_hits': num_hits})
     item_ids = set('id{}'.format(i) for i in range(total_num_items))
     for id_ in item_ids:
