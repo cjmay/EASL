@@ -5,6 +5,7 @@ import random
 import logging
 import os
 from csv import DictReader
+from math import ceil
 
 import numpy as np
 from scipy.stats import spearmanr
@@ -25,7 +26,7 @@ class EASL(object):
 
     DEFAULT_PARAMS = dict(
         param_items=5,
-        param_hits=20,
+        param_hits=0,
         param_match=0.1,
         param_mean_windows=False,
         param_overlap=0,
@@ -88,7 +89,7 @@ class EASL(object):
         csvWriter = csv.DictWriter(open(filePath, 'w', newline=''), fieldnames=self.headerHits)
         csvWriter.writeheader()
 
-        hit_item_pairs = list(hitItems.items())[:self.get_param('param_hits')]
+        hit_item_pairs = list(hitItems.items())
         random.shuffle(hit_item_pairs)
         for itemID, compareIDs in hit_item_pairs:
             ids = [itemID] + list(compareIDs)
@@ -100,21 +101,24 @@ class EASL(object):
                     rowDict[headerItem + str(i + 1)] = self.items[id_i][headerItem]
             csvWriter.writerow(rowDict)
 
-    def getNextK(self, k, iterNum):
+    def getNextK(self, iterNum):
+        k = self.get_param('param_hits')
+        if not k:
+            k = ceil(len(self.items) / self.get_param('param_items'))
+
         k_items = {}
 
         if iterNum == 0:
-            # The first iteration will cover all items.
+            # The first iteration will cover all items (maybe more than once).
             id_list = []
-            for item_id, row in self.items.items():
-                id_list.append(item_id)
-            random.shuffle(id_list)
-            residual = self.get_param("param_items") - (len(id_list) % self.get_param("param_items"))
-            id_list = id_list + id_list[:residual]
-            assert len(id_list) % self.get_param("param_items") == 0
+            while len(id_list) < k * self.get_param('param_items'):
+                id_sublist = list(self.items.keys())
+                random.shuffle(id_sublist)
+                id_list += id_sublist
 
-            for sublist in zip(*[iter(id_list)] * self.get_param("param_items")):
-                k_items[sublist[0]] = np.array(sublist[1:])
+            for hit_start in range(0, k, self.get_param('param_items')):
+                k_items[id_list[hit_start]] = id_list[hit_start + 1:
+                                                      hit_start + self.get_param('param_items')]
 
         else:
             if self.get_param('param_mean_windows'):
@@ -294,7 +298,7 @@ def run(operation, model_path, params):
         # generate next hits
         model.loadItem(model_path)
         hit_path = os.path.join(model_dir, model_name + '_hit_' + str(iter_num + 1) + os.extsep + "csv")
-        next_items = model.getNextK(params['param_hits'], iter_num)
+        next_items = model.getNextK(iter_num)
         model.generateHits(hit_path, next_items)
 
 

@@ -27,9 +27,9 @@ if __name__ == "__main__":
                         help="parameter gamma for match quality (default 0.1) ")
     parser.add_argument('--hits', dest="param_hits", type=int,
                         default=EASL.DEFAULT_PARAMS['param_hits'],
-                        help="number of HITs to generate (recommend: "
-                             "hits = N/k, N=number of entire sample points, "
-                             "k=items per hit)")
+                        help="number of HITs to generate (if 0: as "
+                             "many HITs as are necessary to show each item "
+                             "at least once)")
     parser.add_argument('--mean-windows', dest="param_mean_windows", action='store_true',
                         help="use mean windows to compute HITs "
                              "(default: original EASL method)")
