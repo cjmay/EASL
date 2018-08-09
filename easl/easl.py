@@ -6,6 +6,7 @@ import logging
 import os
 from csv import DictReader
 from math import ceil
+import html
 
 import numpy as np
 from scipy.stats import spearmanr
@@ -65,7 +66,7 @@ class EASL(object):
                     raise Exception("Columns must have at least length of two (e.g., id, sent)")
 
                 out_row = dict(
-                    (k, replace_emoji_characters(v))
+                    (k, html.escape(replace_emoji_characters(v)))
                     for (k, v) in row.items()
                 )
                 out_row.update(self.INITIAL_ITEM_STATE)

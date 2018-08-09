@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name='easl',
-    version='0.2dev3',
+    version='0.2dev4',
     packages=['easl'],
     scripts=glob(os.path.join('scripts', '*.py')),
     install_requires=[
