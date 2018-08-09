@@ -66,7 +66,7 @@ class EASL(object):
                     raise Exception("Columns must have at least length of two (e.g., id, sent)")
 
                 out_row = dict(
-                    (k, html.escape(replace_emoji_characters(v)))
+                    (k, replace_emoji_characters(html.escape(v)))
                     for (k, v) in row.items()
                 )
                 out_row.update(self.INITIAL_ITEM_STATE)
